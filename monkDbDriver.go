@@ -1,11 +1,11 @@
 package monk_db_driver
 
 import (
+	"database/sql"
 	"fmt"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/stetsd/monk-conf"
-	"log"
 )
 
 type DbDriver struct {
@@ -44,7 +44,7 @@ func NewDbDriver(conf config.Config) (*DbDriver, error) {
 	return &dbDriver, nil
 }
 
-func (dbd *DbDriver) Query(qString string, fields ...string) error {
+func (dbd *DbDriver) Query(qString string, fields ...interface{}) (*sql.Rows, error) {
 	var arguments []interface{} = make([]interface{}, len(fields))
 
 	for i, field := range fields {
@@ -56,14 +56,8 @@ func (dbd *DbDriver) Query(qString string, fields ...string) error {
 	)
 
 	if err != nil {
-		return err
+		return rows, err
 	}
 
-	defer func() {
-		if err := rows.Close(); err != nil {
-			log.Fatalln(err.Error())
-		}
-	}()
-
-	return nil
+	return rows, nil
 }
